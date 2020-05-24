@@ -9,7 +9,7 @@ group = 'io.github.goetschalckx'
 
 sourceCompatibility = 1.8
 
-version = '0.1.1-SNAPSHOT'
+version = '0.1.2-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -28,7 +28,7 @@ task sourceJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
-task javadocJar2(type: Jar, dependsOn: javadoc) {
+task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier "javadoc"
     from javadoc.destinationDir
 }
@@ -65,7 +65,7 @@ publishing {
 
             from components.java
             artifact sourceJar
-            artifact javadocJar2
+            artifact javadocJar
         }
     }
 
@@ -73,13 +73,10 @@ publishing {
         mavenLocal()
 
         maven {
-            //url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-
-            //def repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
             def snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 
-            //url = version.endsWith('SNAPSHOT') ? snapshotRepositoryUrl : repositoryUrl
-            url = snapshotRepositoryUrl
+            url = version.endsWith('SNAPSHOT') ? snapshotRepositoryUrl : repositoryUrl
 
             println "Artifact Version: " + version
             println "Maven URL: " + url
@@ -99,7 +96,7 @@ signing {
 
 tasks.withType(Sign) {
     onlyIf {
-        project.hasProperty('signing.keyId5')
+        project.hasProperty('signing.keyId')
     }
 
     doFirst {
@@ -107,15 +104,15 @@ tasks.withType(Sign) {
     }
 }
 
-test {
-    finalizedBy jacocoTestReport
-}
+tasks.publish.dependsOn check
+tasks.publishToMavenLocal.dependsOn check
+tasks.test.finalizedBy jacocoTestReport
+
 jacocoTestReport {
     dependsOn test
 
     reports {
         xml.enabled true
-        //xml.destination file("${buildDir}/reports/jacoco/report.xml")
         csv.enabled true
         html.enabled true
     }
